@@ -41,7 +41,6 @@ extras_require["examples"] = extras_require["recommended"] + [
     "cftime",
     "netcdf4",
     "dask",
-    "ibis-framework >=1.3",
     "scipy",
     "shapely",
     "scikit-image",
@@ -49,7 +48,11 @@ extras_require["examples"] = extras_require["recommended"] + [
 
 if sys.version_info.major > 2:
     extras_require["examples"].extend(
-        ["spatialpandas", "pyarrow <1.0"]  # spatialpandas incompatibility
+        [
+            "spatialpandas",
+            "pyarrow <1.0",
+            "ibis-framework >=1.3",
+        ]  # spatialpandas incompatibility
     )
 
 # Extra third-party libraries
@@ -89,16 +92,16 @@ extras_require["nbtests"] = extras_require["recommended"] + [
     "ipython ==5.4.1",
 ]
 
-extras_require['doc'] = extras_require['examples'] + [
-    'nbsite >0.5.2',
-    'sphinx',
-    'sphinx_holoviz_theme',
-    'mpl_sample_data >=3.1.3',
-    'awscli',
-    'pscript',
-    'graphviz',
-    'selenium',
-    'bokeh <2.2'
+extras_require["doc"] = extras_require["examples"] + [
+    "nbsite >0.5.2",
+    "sphinx",
+    "sphinx_holoviz_theme",
+    "mpl_sample_data >=3.1.3",
+    "awscli",
+    "pscript",
+    "graphviz",
+    "selenium",
+    "bokeh <2.2",
 ]
 
 extras_require["build"] = [
