@@ -92,16 +92,17 @@ extras_require["nbtests"] = extras_require["recommended"] + [
     "ipython ==5.4.1",
 ]
 
-extras_require["doc"] = extras_require["examples"] + [
-    "nbsite >0.5.2",
-    "sphinx",
-    "sphinx_holoviz_theme",
-    "mpl_sample_data >=3.1.3",
-    "awscli",
-    "pscript",
-    "graphviz",
-    "selenium",
-    "bokeh <2.2",
+extras_require['doc'] = extras_require['examples'] + [
+    'nbsite >0.5.2',
+    'sphinx',
+    'sphinx_holoviz_theme',
+    'mpl_sample_data >=3.1.3',
+    'awscli',
+    'pscript',
+    'graphviz',
+    'bokeh <2.2',
+    'nbconvert <6.0',
+    'mpl_sample_data'
 ]
 
 extras_require["build"] = [
