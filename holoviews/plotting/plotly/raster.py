@@ -13,6 +13,9 @@ class RasterPlot(ColorbarPlot):
 
     padding = param.ClassSelector(default=0, class_=(int, float, tuple))
 
+    nodata = param.Integer(default=None,
+                           doc="Missing data (NaN) value for integer data", allow_None=True)
+
     style_opts = ['visible', 'cmap', 'alpha']
 
     trace_kwargs = {'type': 'heatmap'}
@@ -39,6 +42,13 @@ class RasterPlot(ColorbarPlot):
         if self.invert_axes:
             x0, y0, dx, dy = y0, x0, dy, dx
             array = array.T
+
+        plot_opts = element.opts.get('plot', 'plotly')
+        nodata = plot_opts.kwargs.get('nodata')
+        if nodata is not None:
+            array = array if (array.dtype.kind  == 'f') else array.astype(np.float64)
+            array[array == nodata] = np.NaN
+
         return [dict(x0=x0, y0=y0, dx=dx, dy=dy, z=array)]
 
 
@@ -99,6 +109,9 @@ class HeatMapPlot(HeatMapMixin, RasterPlot):
 
 class QuadMeshPlot(RasterPlot):
 
+    nodata = param.Integer(default=None,
+                           doc="Missing data (NaN) value for integer data", allow_None=True)
+
     def get_data(self, element, ranges, style):
         x, y, z = element.dimensions()[:3]
         irregular = element.interface.irregular(element, x)
@@ -111,4 +124,11 @@ class QuadMeshPlot(RasterPlot):
         if self.invert_axes:
             y, x = 'x', 'y'
             zdata = zdata.T
+
+        plot_opts = element.opts.get('plot', 'plotly')
+        nodata = plot_opts.kwargs.get('nodata')
+        if nodata is not None:
+            zdata = zdata if (zdata.dtype.kind  == 'f') else zdata.astype(np.float64)
+            zdata[zdata == nodata] = np.NaN
+
         return [{x: xc, y: yc, 'z': zdata}]
