@@ -126,8 +126,7 @@ class DatashaderAggregateTests(ComparisonTestCase):
         dates = [np.datetime64('2016-01-01T12:00:00.000000000'),
                  np.datetime64('2016-01-02T12:00:00.000000000')]
         expected = Image((dates, [1.5, 2.5], [[1, 0], [0, 2]]),
-                         datatype=['xarray'], bounds=bounds,
-                         vdims='Count')
+                         datatype=['xarray'], bounds=bounds, vdims='Count')
         self.assertEqual(img, expected)
 
     def test_aggregate_curve_datetimes_dask(self):
@@ -143,8 +142,7 @@ class DatashaderAggregateTests(ComparisonTestCase):
         dates = [np.datetime64('2019-01-01T04:09:45.000000000'),
                  np.datetime64('2019-01-01T12:29:15.000000000')]
         expected = Image((dates, [166.5, 499.5, 832.5], [[332, 0], [167, 166], [0, 334]]),
-                         ['index', 'a'], 'Count', datatype=['xarray'],
-                         bounds=bounds)
+                         ['index', 'a'], 'Count', datatype=['xarray'], bounds=bounds)
         self.assertEqual(img, expected)
 
     def test_aggregate_curve_datetimes_microsecond_timebase(self):
@@ -158,8 +156,7 @@ class DatashaderAggregateTests(ComparisonTestCase):
         dates = [np.datetime64('2016-01-01T11:59:59.861759000',),
                  np.datetime64('2016-01-02T12:00:00.138241000')]
         expected = Image((dates, [1.5, 2.5], [[1, 0], [0, 2]]),
-                         datatype=['xarray'], bounds=bounds,
-                         vdims='Count')
+                         datatype=['xarray'], bounds=bounds, vdims='Count')
         self.assertEqual(img, expected)
 
     def test_aggregate_ndoverlay_count_cat_datetimes_microsecond_timebase(self):
