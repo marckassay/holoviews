@@ -96,9 +96,9 @@ class RasterPlot(ColorbarPlot):
 
         dh, dw = t-b, r-l
         if self.invert_xaxis:
-            l, r = r, l
+            dw = -dw
         if self.invert_yaxis:
-            b, t = t, b
+            dh = -dh
         data = dict(x=[l], y=[b], dw=[dw], dh=[dh])
 
         for i, vdim in enumerate(element.vdims, 2):
@@ -178,11 +178,11 @@ class RGBPlot(ElementPlot):
             
         dh, dw = t-b, r-l
         if self.invert_xaxis:
-            l, r = r, l
+            dw = -dw
             img = img[:, ::-1]
         if self.invert_yaxis:
             img = img[::-1]
-            b, t = t, b
+            dh = -dh
 
         if 0 in img.shape:
             img = np.zeros((1, 1), dtype=np.uint32)
