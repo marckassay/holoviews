@@ -38,6 +38,7 @@ extras_require['examples'] = extras_require['recommended'] + [
     'pillow',
     'xarray >=0.10.4',
     'plotly >=4.0',
+    'dash >=1.16',
     'streamz >=0.5.0',
     'datashader',
     'ffmpeg',
@@ -67,11 +68,15 @@ extras_require['tests'] = [
     'mock',
     'flake8 ==3.6.0',
     'coveralls',
-    'path.py', 
+    'path.py',
     'matplotlib >=2.2,<3.1',
     'nbsmoke >=0.2.0',
     'pytest-cov ==2.5.1',
-    'pytest <6.0'
+    'pytest <6.0',
+    'nbconvert <6',
+    'twine',
+    'rfc3986',
+    'keyring'
 ]
 
 extras_require['unit_tests'] = extras_require['examples']+extras_require['tests']
@@ -100,7 +105,7 @@ extras_require['doc'] = extras_require['examples'] + [
     'awscli',
     'pscript',
     'graphviz',
-    'bokeh <2.2',
+    'bokeh >2.2',
     'nbconvert <6.0',
     'mpl_sample_data'
 ]

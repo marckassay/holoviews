@@ -21,6 +21,8 @@ from .core.ndmapping import UniformNdMapping
 # Types supported by Pointer derived streams
 pointer_types = (Number, util.basestring, tuple)+util.datetime_types
 
+class _SkipTrigger(): pass
+
 
 @contextmanager
 def triggering_streams(streams):
@@ -408,8 +410,9 @@ class Stream(param.Parameterized):
         """
         Update the stream parameters and trigger an event.
         """
-        self.update(**kwargs)
-        self.trigger([self])
+        skip = self.update(**kwargs)
+        if skip is not _SkipTrigger:
+            self.trigger([self])
 
     def update(self, **kwargs):
         """
@@ -422,8 +425,9 @@ class Stream(param.Parameterized):
         """
         self._set_stream_parameters(**kwargs)
         transformed = self.transform()
-        if transformed:
-            self._set_stream_parameters(**transformed)
+        if transformed is None:
+            return _SkipTrigger
+        self._set_stream_parameters(**transformed)
 
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -629,7 +633,7 @@ class Buffer(Pipe):
             self.verify(data)
             kwargs['data'] = self._concat(data)
             self._count += 1
-        super(Buffer, self).update(**kwargs)
+        return super(Buffer, self).update(**kwargs)
 
 
     @property
@@ -740,9 +744,13 @@ class Params(Stream):
 
     @property
     def hashkey(self):
-        hashkey = {(p.owner, p.name): getattr(p.owner, p.name) for p in self.parameters}
-        hashkey = {' '.join([o.name, self._rename.get((o, n), n)]): v for (o, n), v in hashkey.items()
-                   if self._rename.get((o, n), True) is not None}
+        hashkey = {}
+        for p in self.parameters:
+            pkey = (p.owner, p.name)
+            pname = self._rename.get(pkey, p.name)
+            key = ' '.join([p.owner.name, pname])
+            if self._rename.get(pkey, True) is not None:
+                hashkey[key] = getattr(p.owner, p.name)
         hashkey['_memoize_key'] = self._memoize_counter
         return hashkey
 
@@ -779,6 +787,7 @@ class ParamMethod(Params):
         parameterized = util.get_method_owner(parameterized)
         if not parameters:
             parameters = [p.pobj for p in parameterized.param.params_depended_on(method.__name__)]
+
         params['watch_only'] = True
         super(ParamMethod, self).__init__(parameterized, parameters, watch, **params)
 
@@ -959,9 +968,12 @@ class SelectionExpr(Derived):
         else:
             element_type = source
         if element_type:
-            input_streams = [
-                stream(source=source) for stream in element_type._selection_streams
-            ]
+            input_streams = []
+            for stream in element_type._selection_streams:
+                kwargs = dict(source=source)
+                if isinstance(stream, Selection1D):
+                    kwargs['index'] = None
+                input_streams.append(stream(**kwargs))
             return input_streams
         else:
             return []
@@ -974,11 +986,18 @@ class SelectionExpr(Derived):
             "include_region": self.include_region,
         }
 
+    def transform(self):
+        # Skip index streams if no index_cols are provided
+        for stream in self.input_streams:
+            if (isinstance(stream, Selection1D) and stream._triggering
+                and not self._index_cols):
+                return
+        return super(SelectionExpr, self).transform()
+
     @classmethod
     def transform_function(cls, stream_values, constants):
         hvobj = constants["source"]
         include_region = constants["include_region"]
-
         if hvobj is None:
             # source is None
             return dict(selection_expr=None, bbox=None, region_element=None,)
@@ -996,8 +1015,12 @@ class SelectionExpr(Derived):
         region_element = None
         for stream_value in stream_values:
             params = dict(stream_value, index_cols=constants["index_cols"])
-            selection_expr, bbox, region_element = \
-                element._get_selection_expr_for_stream_value(**params)
+            selection = element._get_selection_expr_for_stream_value(**params)
+            if selection is None:
+                return
+
+            selection_expr, bbox, region_element = selection
+                
             if selection_expr is not None:
                 break
 
@@ -1050,7 +1073,11 @@ class SelectionExprSequence(Derived):
     ):
         self.mode = mode
         self.include_region = include_region
-        self.history_stream = History(SelectionExpr(source, **params))
+        sel_expr = SelectionExpr(
+            source, index_cols=params.pop('index_cols'),
+            **params
+        )
+        self.history_stream = History(sel_expr)
         input_streams = [self.history_stream]
 
         super(SelectionExprSequence, self).__init__(
@@ -1412,7 +1439,7 @@ class Selection1D(LinkedStream):
     A stream representing a 1D selection of objects by their index.
     """
 
-    index = param.List(default=[], constant=True, doc="""
+    index = param.List(default=[], allow_None=True, constant=True, doc="""
         Indices into a 1D datastructure.""")
 
 
